@@ -1,0 +1,200 @@
+创建 react-app
+
+npx create-react-app my-app
+{
+    $ npm install -g create-react-app
+    # 注意：工具会自动初始化一个脚手架并安装 React 项目的各种必要依赖，如果在过程中出现网络问题，请尝试配置代理或使用其他 npm registry。
+    $ create-react-app my-app
+}
+cd my-app
+
+npm start
+
+
+## 废弃
+配置 scss
+npm install create-react-app-sass --save-dev
+
+更改package.json文件
+
+"scripts": {
+  "start": "react-scripts-with-sass start",  
+  "build": "react-scripts-with-sass build",
+  "test": "react-scripts test --env=jsdom",
+  "eject": "react-scripts eject"
+},
+## 废弃
+
+安装 antd-mobile
+
+为什么使用antd-mobile？
+{
+    UI 样式高度可配置，拓展性更强，轻松适应各类产品风格
+    基于 React Native 的 iOS / Android / Web 多平台支持，组件丰富、能全面覆盖各类场景
+    提供 "组件按需加载" / "Web 页面高清显示" / "SVG Icon" 等优化方案，一体式开发
+    使用 TypeScript 开发，提供类型定义文件，支持类型及属性智能提示，方便业务开发
+    全面兼容 react / preact
+}
+npm install antd-mobile --save
+
+配置index.html  
+
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- set `maximum-scale` for some compatibility issues -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+  <script src="https://as.alipayobjects.com/g/component/fastclick/1.0.6/fastclick.js"></script>
+  <script>
+    if ('addEventListener' in document) {
+      document.addEventListener('DOMContentLoaded', function() {
+        FastClick.attach(document.body);
+      }, false);
+    }
+    if(!window.Promise) {
+      document.writeln('<script src="https://as.alipayobjects.com/g/component/es6-promise/3.2.2/es6-promise.min.js"'+'>'+'<'+'/'+'script>');
+    }
+  </script>
+</head>
+<body></body>
+</html>
+
+npm install react-app-rewired --save-dev
+npm install less less-loader --save-dev {需要安装两个}
+npm install babel-plugin-import --save-dev
+
+更改package 
+
+{
+    /* package.json */
+    "scripts": {
+   # -   "start": "react-scripts start",
+    +   "start": "react-app-rewired start",
+   # -   "build": "react-scripts build",
+    +   "build": "react-app-rewired build",
+   # -   "test": "react-scripts test --env=jsdom",
+    +   "test": "react-app-rewired test --env=jsdom",
+    }
+}
+
+
+更目录创建  config-overrides.js
+
+
+复制以下的内容粘贴
+
+{
+    const { injectBabelPlugin, getLoader } = require('react-app-rewired');
+
+const fileLoaderMatcher = function (rule) {
+  return rule.loader && rule.loader.indexOf(`file-loader`) != -1;
+}
+
+module.exports = function override(config, env) {
+  // babel-plugin-import
+  config = injectBabelPlugin(['import', {
+    libraryName: 'antd-mobile',
+    //style: 'css',
+    style: true, // use less for customized theme
+  }], config);
+
+  // customize theme
+  config.module.rules[1].oneOf.unshift(
+    {
+      test: /\.less$/,
+      use: [
+        require.resolve('style-loader'),
+        require.resolve('css-loader'),
+        {
+          loader: require.resolve('postcss-loader'),
+          options: {
+            // Necessary for external CSS imports to work
+            // https://github.com/facebookincubator/create-react-app/issues/2677
+            ident: 'postcss',
+            plugins: () => [
+              require('postcss-flexbugs-fixes'),
+              autoprefixer({
+                browsers: [
+                  '>1%',
+                  'last 4 versions',
+                  'Firefox ESR',
+                  'not ie < 9', // React doesn't support IE8 anyway
+                ],
+                flexbox: 'no-2009',
+              }),
+            ],
+          },
+        },
+        {
+          loader: require.resolve('less-loader'),
+          options: {
+            // theme vars, also can use theme.js instead of this.
+            modifyVars: { "@brand-primary": "#1DA57A" },
+          },
+        },
+      ]
+    }
+  );
+
+  // css-modules
+  config.module.rules[1].oneOf.unshift(
+    {
+      test: /\.css$/,
+      exclude: /node_modules|antd-mobile\.css/,
+      use: [
+        require.resolve('style-loader'),
+        {
+          loader: require.resolve('css-loader'),
+          options: {
+            modules: true,
+            importLoaders: 1,
+            localIdentName: '[local]___[hash:base64:5]'
+          },
+        },
+        {
+          loader: require.resolve('postcss-loader'),
+          options: {
+            // Necessary for external CSS imports to work
+            // https://github.com/facebookincubator/create-react-app/issues/2677
+            ident: 'postcss',
+            plugins: () => [
+              require('postcss-flexbugs-fixes'),
+              autoprefixer({
+                browsers: [
+                  '>1%',
+                  'last 4 versions',
+                  'Firefox ESR',
+                  'not ie < 9', // React doesn't support IE8 anyway
+                ],
+                flexbox: 'no-2009',
+              }),
+            ],
+          },
+        },
+      ]
+    }
+  );
+
+  // file-loader exclude
+  let l = getLoader(config.module.rules, fileLoaderMatcher);
+  l.exclude.push(/\.less$/);
+ 
+  return config;
+};
+}
+参考文件地址https://github.com/ant-design/antd-mobile-samples/blob/master/create-react-app/config-overrides.js
+
+
+js文件引入  import { Button } from 'antd-mobile';
+
+
+
+路由
+npm install --save react-router （不用升级）
+
+npm install --save react-router-dom
+
+ 
+ 路由跳转动画
+
+  npm install react-addons-css-transition-group --save-dev
